@@ -9,6 +9,12 @@
       "api_key": "not-used",
       "models": [],
       "transformer": { "use": ["Anthropic"] }
+    },
+    {
+      "name": "solgate",
+      "api_base_url": "http://127.0.0.1:8321/v1/chat/completions",
+      "api_key": "not-used",
+      "models": []
     }
   ],
   "Router": {

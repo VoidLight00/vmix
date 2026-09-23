@@ -4,7 +4,7 @@
 
 | id | requirement | gate |
 |---|---|---|
-| R1 | `vmix [model-or-alias]` resolves the model from the single registry and starts Claude Code through CCR with the main model and every `/model` slot pinned (Haiku and `ANTHROPIC_SMALL_FAST_MODEL` never left on a Claude model); a real `ANTHROPIC_API_KEY` is not forwarded | test_gate.sh |
+| R1 | `vmix [model-or-alias]` resolves every enabled GPT/Gemini/GLM text model from the single registry and starts Claude Code through CCR; every `/model` slot stays on GPT routes, every enabled non-Claude model is in the allowlist, and a real `ANTHROPIC_API_KEY` is not forwarded | test_gate.sh |
 | R2 | External-call failure paths (missing/broken registry, missing CCR provider, unreachable proxy, dead router, wrong answering model) fail loudly with a next step | error_path_gate.sh |
 | R3 | Shipped artifacts exist in the expected numbers (bins, tests, gates, READMEs, images) | count_gate.sh |
 | R4 | No secrets in the repository | secrets_gate.sh |
@@ -17,3 +17,7 @@
 | R11 | No vertical accent stripes in any shipped design asset | no_vertical_stripe_gate.sh |
 | R12 | README.md and README.ko.md cover prerequisites, all 7 tutorial steps, maintenance, troubleshooting, the pinned router version, and every local link resolves | docs_gate.sh |
 | R13 | Live path verified on a real proxy: install → doctor exit 0 → smoke (each model answers as itself, Claude refused) → launcher session answers (done by the author on claude-code-router 2.0.0; repeat with `vmix smoke` on your setup) | human |
+| R14 | A proxy session may change `~/.claude/settings.json` through `/model`, but when the launcher exits it restores the pre-session default for proxy picks, preserves an explicitly selected native Claude model, and returns Claude Code's original exit status | test_gate.sh |
+| R15 | Long GPT requests remain on the selected GPT route; the router never diverts them to Gemini, and unregistered or Claude models fail closed instead of using `Router.default` | test_gate.sh |
+| R16 | The installer deploys the tested `bin/vmix` as the actual `~/.local/bin/vmix` executable together with its registry and default-model guard, preventing source/runtime drift | test_gate.sh |
+| R17 | The shipped example registry works with VibeProxy alone: no enabled row needs solgate or another optional provider, and every worker slot points at a GPT model | test_gate.sh |

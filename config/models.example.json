@@ -13,12 +13,12 @@
       "picker": "opus"
     },
     {
-      "id": "gemini-3.8-flash-high",
-      "label": "Gemini 3.8 Flash",
-      "aliases": ["gemini", "gemini3.8", "3.8"],
-      "family": "gemini",
+      "id": "gpt-5.6-terra",
+      "label": "GPT-5.6 Terra",
+      "aliases": ["terra"],
+      "family": "gpt",
       "provider": "vibeproxy",
-      "contextCap": "700k",
+      "contextCap": "330k",
       "enabled": true,
       "picker": "sonnet"
     },
@@ -41,6 +41,24 @@
       "contextCap": "240k",
       "enabled": true,
       "picker": "custom"
+    },
+    {
+      "id": "gemini-3.8-flash-high",
+      "label": "Gemini 3.8 Flash",
+      "aliases": ["gemini", "gemini3.8", "3.8"],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "glm-4.7",
+      "label": "GLM 4.7 (needs a Z.AI account in VibeProxy)",
+      "aliases": ["glm", "glm47"],
+      "family": "glm",
+      "provider": "vibeproxy",
+      "contextCap": "100k",
+      "enabled": false
     },
     {
       "id": "gpt-6-sol-1m",

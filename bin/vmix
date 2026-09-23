@@ -8,6 +8,7 @@ set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 REGISTRY_BIN="${VMIX_REGISTRY_BIN:-$SELF_DIR/vmix-registry.mjs}"
+DEFAULT_GUARD_BIN="${VMIX_DEFAULT_GUARD_BIN:-$SELF_DIR/vmix-default-guard.mjs}"
 CCR_URL="${VMIX_CCR_URL:-http://127.0.0.1:3456}"
 CLAUDE_BIN="${VMIX_CLAUDE_BIN:-claude}"
 
@@ -27,6 +28,7 @@ EOF
 
 command -v node >/dev/null 2>&1 || die "Node.js 20+ is required (https://nodejs.org)" 127
 [ -f "$REGISTRY_BIN" ] || die "registry tool not found: $REGISTRY_BIN (run ./install.sh)" 127
+[ -f "$DEFAULT_GUARD_BIN" ] || die "default-model guard not found: $DEFAULT_GUARD_BIN (run ./install.sh)" 127
 
 case "${1:-}" in
   models|-m|--models) shift; exec node "$REGISTRY_BIN" list ;;
@@ -92,5 +94,14 @@ if [ -n "$custom" ]; then
 fi
 # A proxy error must surface as an error, not as an answer from a fallback model.
 export CLAUDE_CODE_NO_MODEL_FALLBACK=1
+allowlist="$(registry allowlist)" || die "could not build the /model allowlist" 1
 
-exec "$CLAUDE_BIN" --model "$route" "$@"
+before_model="$(node "$DEFAULT_GUARD_BIN" get)" || die "could not read the normal Claude Code default" 1
+set +e
+"$CLAUDE_BIN" --model "$route" --settings "$allowlist" "$@"
+claude_rc=$?
+set -e
+if ! node "$DEFAULT_GUARD_BIN" restore "$before_model"; then
+  printf 'vmix: warning: could not restore the normal Claude Code default\n' >&2
+fi
+exit "$claude_rc"

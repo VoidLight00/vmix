@@ -4,12 +4,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { ROOT, exampleRegistry, mockServer, run, tempDir, unusedPortUrl, writeJson } from "./helpers.mjs";
+import { ROOT, multiRegistry, mockServer, run, tempDir, unusedPortUrl, writeJson } from "./helpers.mjs";
 
 const REGISTRY_BIN = path.join(ROOT, "bin", "vmix-registry.mjs");
 const ROUTER = path.join(ROOT, "ccr", "custom-router.js");
 
-function files(registry = exampleRegistry()) {
+function files(registry = multiRegistry()) {
   const dir = tempDir();
   const paths = { registry: path.join(dir, "models.json"), config: path.join(dir, "config.json") };
   writeJson(paths.registry, registry);
@@ -30,7 +30,7 @@ test("missing or broken registry exits 1 with the file path", async () => {
 });
 
 test("sync refuses a missing provider and leaves the config untouched", async () => {
-  const registry = exampleRegistry();
+  const registry = multiRegistry();
   registry.models.find((model) => model.id === "gpt-6-sol-1m").enabled = true;
   const paths = files(registry);
   const original = { Providers: [{ name: "vibeproxy", api_base_url: "http://x:8317/v1/messages", models: [] }] };
@@ -71,16 +71,21 @@ test("doctor catches a model the proxy no longer offers and a non-vmix router", 
   await upstream.close();
   await ccr.close();
   assert.equal(result.code, 1);
-  assert.match(result.stdout, /not offered upstream: gemini-3\.8-flash-high/);
+  assert.match(result.stdout, /not offered upstream: .*gemini-3\.8-flash-high/);
   assert.match(result.stdout, /does not point to ccr\/custom-router\.js/);
 });
 
 test("doctor passes on a healthy setup", async () => {
-  const ids = ["gpt-6-sol", "gemini-3.8-flash-high", "gpt-6-luna", "gpt-6-astra"];
-  const upstream = await mockServer((req) => (req.url === "/v1/models" ? { status: 200, json: { data: ids.map((id) => ({ id })) } } : null));
+  const registry = multiRegistry();
+  const vibeIds = registry.models.filter((model) => model.enabled && model.provider === "vibeproxy").map((model) => model.id);
+  const solIds = registry.models.filter((model) => model.enabled && model.provider === "solgate").map((model) => model.id);
+  const upstream = await mockServer((req) => (req.url === "/v1/models" ? { status: 200, json: { data: [...vibeIds, ...solIds].map((id) => ({ id })) } } : null));
   const ccr = await mockServer(() => ({ status: 200, json: {} }));
-  const paths = files();
-  writeJson(paths.config, { CUSTOM_ROUTER_PATH: ROUTER, Providers: [{ name: "vibeproxy", api_base_url: `${upstream.url}/v1/messages`, models: ids }] });
+  const paths = files(registry);
+  writeJson(paths.config, { CUSTOM_ROUTER_PATH: ROUTER, Providers: [
+    { name: "vibeproxy", api_base_url: `${upstream.url}/v1/messages`, models: vibeIds },
+    { name: "solgate", api_base_url: `${upstream.url}/v1/chat/completions`, models: solIds },
+  ] });
   const result = await tool(["doctor"], { VMIX_REGISTRY: paths.registry, VMIX_CCR_CONFIG: paths.config, VMIX_CCR_URL: ccr.url });
   await upstream.close();
   await ccr.close();
@@ -95,7 +100,7 @@ test("smoke fails when another model answers or the blocked model is served", as
     return { status: 200, json: { model: "gpt-5.6-sol" } };
   });
   const paths = files();
-  const result = await tool(["smoke", "sol", "gemini"], { VMIX_REGISTRY: paths.registry, VMIX_CCR_URL: ccr.url });
+  const result = await tool(["smoke", "gpt-6-sol", "gemini"], { VMIX_REGISTRY: paths.registry, VMIX_CCR_URL: ccr.url });
   await ccr.close();
   assert.equal(result.code, 1);
   assert.match(result.stdout, /FAIL {2}gpt-6-sol: HTTP 200, answered as gpt-5\.6-sol/);

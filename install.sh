@@ -39,8 +39,12 @@ case "$CCR_VERSION" in
 esac
 
 mkdir -p "$BIN_DIR" "$CFG_DIR" "$CCR_DIR"
+if [ -e "$BIN_DIR/vmix" ] || [ -L "$BIN_DIR/vmix" ]; then
+  cp -pPR "$BIN_DIR/vmix" "$BIN_DIR/vmix.bak.$STAMP"
+fi
 install -m 0755 "$ROOT/bin/vmix" "$BIN_DIR/vmix"
 install -m 0755 "$ROOT/bin/vmix-registry.mjs" "$BIN_DIR/vmix-registry.mjs"
+install -m 0755 "$ROOT/bin/vmix-default-guard.mjs" "$BIN_DIR/vmix-default-guard.mjs"
 say "installed vmix into $BIN_DIR"
 
 if [ -f "$CFG_DIR/models.json" ]; then

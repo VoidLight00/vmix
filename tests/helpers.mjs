@@ -26,6 +26,14 @@ export function exampleRegistry() {
   return readJson(EXAMPLE_REGISTRY);
 }
 
+// A fuller, multi-provider registry (solgate for GPT, VibeProxy for Gemini/GLM) so the
+// tests cover more than the minimal public example that ships in config/.
+export const MULTI_REGISTRY = path.join(ROOT, "tests", "fixtures", "models.multi.json");
+
+export function multiRegistry() {
+  return readJson(MULTI_REGISTRY);
+}
+
 export function writeExecutable(file, body) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, body, { mode: 0o755 });

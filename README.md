@@ -2,11 +2,11 @@
 
 # vmix
 
-One Claude Code launcher for GPT and Gemini, driven by a single model registry and a router that refuses to answer with a model you did not pick.
+One Claude Code launcher for GPT and Gemini (GLM optional), driven by a single model registry and a router that refuses to answer with a model you did not pick.
 
 ![vmix hero](assets/hero.png)
 
-`vmix` starts [Claude Code](https://github.com/anthropics/claude-code) against [claude-code-router](https://github.com/musistudio/claude-code-router) (CCR), which forwards requests to [VibeProxy](https://github.com/automazeio/vibeproxy) — a macOS menu bar app that signs in to ChatGPT and Gemini with the subscriptions you already have. Inside one session you switch between GPT-6 and Gemini with `/model`, and the conversation carries over.
+`vmix` starts [Claude Code](https://github.com/anthropics/claude-code) against [claude-code-router](https://github.com/musistudio/claude-code-router) (CCR), which forwards requests to [VibeProxy](https://github.com/automazeio/vibeproxy) and optional Solgate routes. Inside one session you can switch among registered GPT, Gemini, and GLM text models with `/model`, and the conversation carries over.
 
 This repository is also a tutorial: it lists every app you need, from a clean Mac to a working `vmix`, and the mistakes that shaped the design.
 
@@ -24,7 +24,8 @@ It did not work. The UI said Opus; the replies came from GPT. The router had no 
 ## What you get
 
 - `vmix`, `vmix gemini`, `vmix luna` — start a session on any registry model or alias.
-- `/model` slots inside the session come from the registry (Opus = GPT-6 Sol, Sonnet = Gemini 3.8, Haiku = GPT-6 Luna, custom = GPT-6 Astra in the example).
+- `/model` slots inside the session come from the registry (Opus = GPT-6 Sol, Sonnet = GPT-5.6 Terra, Haiku = GPT-6 Luna, custom = GPT-6 Astra). Worker slots stay on GPT, so a used-up Gemini quota cannot stall background calls; Gemini is picked from the full list. GLM rows ship disabled until you connect a Z.AI account in VibeProxy.
+- `/model` lists only registry models (Claude Code's `availableModels` allowlist), and a pick made there does not become the default of your normal `claude` sessions: vmix restores the previous default when the session ends.
 - A **fail-closed router**: Claude models, unknown models and disabled models return HTTP 400 instead of a default model's answer.
 - `vmix sync` writes the registry into the CCR config, so the lists cannot drift.
 - `vmix doctor` checks the registry, the router wiring, the proxy's model catalog and CCR health.
@@ -189,8 +190,9 @@ The router re-reads the registry on every request, so enabling or disabling a mo
 | Requests hang, then time out; `doctor` says it cannot read the model list | Proxy host unreachable — VPN off after a reboot, machine asleep, VibeProxy stopped | Turn Tailscale on, wake the proxy host, check VibeProxy is running |
 | `__vmix_unsupported__<model>` 400 | You picked a model that is not an enabled registry row (for example a Claude model) | Working as intended. Pick a registry model, or add the row |
 | `not offered upstream: <id>` | The provider renamed or retired the model, or the account is logged out | Update the id from `/v1/models`, or reconnect the account in VibeProxy |
-| `smoke` fails with a quota message | The subscription's usage window is used up | Wait for the reset or switch models with `/model` |
+| `smoke` fails with a quota or balance message | That model's usage window or balance is exhausted | Wait or recharge, then retry; vmix never silently substitutes another model |
 | `vmix` still behaves like an old script | A shell function or alias named `vmix` shadows the binary | `type vmix` should print a path in `~/.local/bin` |
+| Plain `claude` starts on `haiku` or a proxy model | A proxy session that was not started by vmix saved its `/model` pick as the global default | Pick your usual model with `/model` in a normal `claude` session, and start proxy sessions with `vmix` |
 
 ## Lessons learned
 
@@ -202,6 +204,8 @@ These are the failures that shaped the design, in the order we hit them.
 4. **Background calls use the Haiku slot.** Once the router refuses Claude models, a session that leaves the Haiku slot on a Claude model starts failing its background calls. `vmix` always pins Haiku (and `ANTHROPIC_SMALL_FAST_MODEL`) to a registry model.
 5. **Shell functions win over binaries.** A leftover function with the same name keeps running old code after you install a new launcher.
 6. **Reboots turn VPNs off.** After a restart, every request timed out because Tailscale was stopped. `vmix doctor` names this case explicitly.
+7. **`/model` in a proxy session rewrites your global default.** Claude Code saves the pick in `~/.claude/settings.json`, so the next plain `claude` started on `haiku` or on a proxy route it cannot reach. It happened repeatedly before we noticed. vmix now records the default before a session and restores it afterwards; a native `claude-…` model picked meanwhile is kept.
+8. **Worker slots share a quota with whatever they point at.** With the Sonnet slot on Gemini, a GPT session failed as soon as the Gemini quota ran out, because background work used that slot. All worker slots now point at GPT models.
 
 ## Keeping the laptop light
 

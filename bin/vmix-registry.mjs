@@ -95,6 +95,10 @@ export function pickerSlots(registry) {
     .map((model) => ({ slot: model.picker, route: routeString(model), label: model.label || model.id }));
 }
 
+export function availableModels(registry) {
+  return enabledModels(registry).map(routeString);
+}
+
 // Rewrites only the `models` array of providers the registry uses; every other
 // key and provider in the CCR config is left exactly as the user wrote it.
 export function syncConfig(registry, config) {
@@ -319,6 +323,9 @@ async function main(argv) {
     for (const slot of pickerSlots(mustValidate(loadRegistry()))) console.log([slot.slot, slot.route, slot.label].join("\t"));
   } else if (command === "list") {
     cmdList();
+  } else if (command === "allowlist") {
+    const registry = mustValidate(loadRegistry());
+    console.log(JSON.stringify({ availableModels: availableModels(registry) }));
   } else if (command === "sync") {
     cmdSync();
   } else if (command === "doctor") {
@@ -326,7 +333,7 @@ async function main(argv) {
   } else if (command === "smoke") {
     await cmdSmoke(rest);
   } else {
-    console.log("usage: vmix-registry.mjs validate|resolve <model>|slots|list|sync|doctor|smoke [model...]");
+    console.log("usage: vmix-registry.mjs validate|resolve <model>|slots|list|allowlist|sync|doctor|smoke [model...]");
     if (command !== "help") process.exitCode = 64;
   }
 }

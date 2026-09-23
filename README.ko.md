@@ -2,7 +2,7 @@
 
 # vmix
 
-Claude Code 하나로 GPT와 Gemini를 오가며 쓰는 실행기예요. 모델 목록은 파일 하나에서만 관리하고, 고르지 않은 모델이 몰래 대신 답하는 일은 라우터가 막아요.
+Claude Code 하나로 GPT와 Gemini(GLM은 선택)를 오가며 쓰는 실행기예요. 모델 목록은 파일 하나에서만 관리하고, 고르지 않은 모델이 몰래 대신 답하는 일은 라우터가 막아요.
 
 ![vmix hero](assets/hero.png)
 
@@ -24,7 +24,8 @@ Claude Code 하나로 GPT와 Gemini를 오가며 쓰는 실행기예요. 모델 
 ## 무엇을 할 수 있나요
 
 - `vmix`, `vmix gemini`, `vmix luna`처럼 레지스트리의 모델이나 별칭으로 바로 세션을 시작해요.
-- 세션 안의 `/model` 슬롯도 레지스트리에서 정해져요. 예제 설정에서는 Opus = GPT-6 Sol, Sonnet = Gemini 3.8, Haiku = GPT-6 Luna, custom = GPT-6 Astra예요.
+- 세션 안의 `/model` 슬롯도 레지스트리에서 정해져요. 예제 설정에서는 Opus = GPT-6 Sol, Sonnet = GPT-5.6 Terra, Haiku = GPT-6 Luna, custom = GPT-6 Astra예요. 작업자 슬롯은 모두 GPT라서 Gemini 한도가 떨어져도 백그라운드 작업이 멈추지 않아요. Gemini는 전체 목록에서 직접 고르고, GLM 행은 VibeProxy에 Z.AI 계정을 연결한 뒤 켜면 돼요.
+- `/model` 목록에는 레지스트리 모델만 보여요(Claude Code의 `availableModels` 허용 목록). 그리고 여기서 고른 모델이 평소 `claude` 세션의 기본값으로 저장되지 않도록, 세션이 끝나면 vmix가 이전 기본값으로 되돌려요.
 - **실패하면 멈추는(fail-closed) 라우터**를 써요. Claude 모델, 모르는 모델, 꺼 둔 모델은 기본 모델이 대신 답하지 않고 HTTP 400으로 끝나요.
 - `vmix sync`가 레지스트리를 CCR 설정에 옮겨 적어서 목록이 어긋날 수 없어요.
 - `vmix doctor`가 레지스트리, 라우터 연결, 프록시 모델 목록, CCR 상태를 한 번에 점검해요.
@@ -189,8 +190,9 @@ vmix doctor && vmix smoke <새-id>
 | 요청이 멈췄다가 시간 초과, `doctor`가 모델 목록을 못 읽음 | 프록시 호스트에 닿지 않아요. 재부팅 후 VPN 꺼짐, 기기 잠자기, VibeProxy 꺼짐 | Tailscale 켜기, 프록시 호스트 깨우기, VibeProxy 실행 확인 |
 | `__vmix_unsupported__<모델>` 400 | 켜진 레지스트리 행이 아닌 모델(예: Claude 모델)을 골랐어요 | 의도한 동작이에요. 레지스트리 모델을 고르거나 행을 추가하세요 |
 | `not offered upstream: <id>` | 프로바이더가 모델 이름을 바꿨거나 없앴어요, 또는 계정 로그인이 풀렸어요 | `/v1/models`에서 id를 확인해 고치거나 VibeProxy에서 다시 Connect |
-| `smoke`가 사용량 메시지로 실패 | 구독의 사용 한도를 다 썼어요 | 초기화될 때까지 기다리거나 `/model`로 다른 모델 사용 |
+| `smoke`가 사용량 메시지로 실패 | 해당 모델의 구독 한도나 잔액을 다 썼어요 | 초기화·충전 전까지 다른 등록 모델 사용. vmix는 다른 모델로 몰래 대체하지 않아요 |
 | `vmix`가 예전 스크립트처럼 동작 | 같은 이름의 셸 함수나 alias가 실행 파일을 가리고 있어요 | `type vmix`가 `~/.local/bin` 경로를 가리켜야 해요 |
+| 평소 `claude`가 `haiku`나 프록시 모델로 시작 | vmix로 켜지 않은 프록시 세션이 `/model` 선택을 전역 기본값으로 저장했어요 | 평소 `claude` 세션에서 `/model`로 원래 모델을 다시 고르고, 프록시 세션은 `vmix`로 여세요 |
 
 ## 만들면서 배운 것
 
@@ -202,6 +204,8 @@ vmix doctor && vmix smoke <새-id>
 4. **백그라운드 요청은 Haiku 슬롯을 써요.** 라우터가 Claude 모델을 거절하기 시작하면, Haiku 슬롯이 Claude 모델로 남아 있는 세션은 제목 생성 같은 백그라운드 요청이 실패해요. 그래서 `vmix`는 Haiku 슬롯과 `ANTHROPIC_SMALL_FAST_MODEL`을 항상 레지스트리 모델로 고정해요.
 5. **셸 함수가 실행 파일보다 먼저예요.** 같은 이름의 옛 함수가 남아 있으면 새 실행기를 설치해도 옛 코드가 계속 돌아요.
 6. **재부팅하면 VPN이 꺼질 수 있어요.** 재시작한 뒤 모든 요청이 시간 초과로 끝났는데, 원인은 꺼져 있던 Tailscale이었어요. `vmix doctor`가 이 경우를 따로 짚어 줘요.
+7. **프록시 세션의 `/model`이 전역 기본값을 바꿔 버려요.** Claude Code는 고른 모델을 `~/.claude/settings.json`에 저장해서, 다음에 켠 평소 `claude`가 `haiku`나 닿지 않는 프록시 경로로 시작됐어요. 알아채기 전까지 여러 번 반복됐어요. 이제 vmix는 세션 전 기본값을 기록했다가 끝나면 되돌려요. 그사이 평소 세션에서 고른 `claude-…` 모델은 그대로 둬요.
+8. **작업자 슬롯은 가리키는 모델과 한도를 같이 써요.** Sonnet 슬롯이 Gemini였을 때는 Gemini 한도가 떨어지는 순간 GPT 세션도 멈췄어요. 백그라운드 작업이 그 슬롯을 썼기 때문이에요. 그래서 작업자 슬롯은 전부 GPT 모델로 바꿨어요.
 
 ## 노트북을 가볍게 유지하기
 
