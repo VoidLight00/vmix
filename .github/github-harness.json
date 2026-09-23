@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "profile": "public-full",
   "intent": {
-    "visibility": "private",
+    "visibility": "public",
     "images": "required",
     "languages": [
       "en",

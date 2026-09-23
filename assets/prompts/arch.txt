@@ -1,9 +1,14 @@
-SUBJECT: a clean flow diagram drawn as isometric objects without any words: a laptop, then a small router block with a single switch lever, then a sturdy mini desktop computer, then two separate cloud nodes; thin connector lines join them left to right; one short side branch from the router ends in a closed gate icon showing a refused path
-CAMERA/LENS: orthographic isometric technical illustration
-LIGHT: flat even lighting, soft contact shadows
-COMPOSITION: single left-to-right row centered vertically so a 16:9 center crop keeps every object, equal spacing, generous margins
-MOOD: clear, engineered, easy to read
-ASPECT_RATIO: 16:9 (row centered for crop from square)
-DETAIL: consistent 2px line weight, solid fills, the refused branch and gate in the orange accent
-FILM/COLOR: monochrome ink black (#0f0f10) and white with exactly one warm daisy-orange accent (#F5A623), flat matte finish, no gradients beyond subtle paper grain
-NEGATIVE: no text, no letters, no numbers, no labels, no fake brand logos, no pixel-copied UI, no distorted korean/latin text, no watermark, no lorem ipsum, no extra fingers/limbs, no gibberish, no signature, no left-edge vertical accent bars
+# /gi prompt — kind=arch — project=vmix
+# 7-axis (photo-prompts-master) enforced. 종횡비 명시 필수. 본 파일을 /gi 에 전달.
+
+SUBJECT: clean technical architecture diagram concept for 'vmix', labeled modules connected by directional flow
+CAMERA/LENS: editorial wide composition, 35mm equivalent, balanced depth
+LIGHT: soft directional key light, gentle rim, professional studio neutrality
+FILM/COLOR: modern flat-tech palette, restrained accent color, high legibility
+COMPOSITION: clear focal hierarchy, generous negative space, rule-of-thirds
+MOOD: confident, premium, trustworthy open-source aesthetic
+ASPECT_RATIO: 16:9
+DETAIL: crisp vector-like edges, no clutter, print-grade sharpness
+
+NEGATIVE: no fake brand logos, no pixel-copied UI, no distorted korean/latin text,
+  no watermark, no lorem ipsum, no extra fingers/limbs, no gibberish labels, no signature

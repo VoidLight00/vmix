@@ -1,0 +1,9 @@
+SUBJECT: one small laptop on the left sending a single clean line of light across a calm dark space to a compact always-on desktop box on the right; from that box the line splits into two distinct glowing orbs, one round and one faceted, representing two AI model services; the line is orange only where it leaves the laptop
+CAMERA/LENS: editorial isometric illustration, 35mm equivalent, even depth
+LIGHT: soft top-left key light, faint rim on object edges
+COMPOSITION: wide panoramic layout with all objects inside the central horizontal band so a 16:9 center crop keeps everything, generous negative space, rule-of-thirds
+MOOD: calm, precise, trustworthy open-source tool
+ASPECT_RATIO: 16:9 (subject centered for crop from square)
+DETAIL: crisp vector-like edges, minimal line art with solid fills, print-grade sharpness
+FILM/COLOR: monochrome ink black (#0f0f10) and white with exactly one warm daisy-orange accent (#F5A623), flat matte finish, no gradients beyond subtle paper grain
+NEGATIVE: no text, no letters, no numbers, no labels, no fake brand logos, no pixel-copied UI, no distorted korean/latin text, no watermark, no lorem ipsum, no extra fingers/limbs, no gibberish, no signature, no left-edge vertical accent bars
