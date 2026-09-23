@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "profile": "public-full",
+  "intent": {
+    "visibility": "private",
+    "images": "required",
+    "languages": [
+      "en",
+      "ko"
+    ],
+    "release": "not_requested",
+    "description": "One Claude Code launcher for GPT and Gemini: a single model registry and a fail-closed router, with a step-by-step setup tutorial",
+    "homepage": "",
+    "topics": [
+      "claude-code",
+      "claude-code-router",
+      "cli",
+      "gemini",
+      "gpt",
+      "llm-router",
+      "tutorial",
+      "vibeproxy"
+    ]
+  },
+  "approvals": {
+    "images": true,
+    "publish": false,
+    "release": false
+  },
+  "local": {
+    "artifacts": "pending",
+    "version": "pending"
+  },
+  "remote": {
+    "push": "pending",
+    "metadata": "pending",
+    "tag": "not_requested",
+    "release": "not_requested",
+    "verification": "pending"
+  },
+  "result": "incomplete"
+}

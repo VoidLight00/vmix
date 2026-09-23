@@ -1,0 +1,31 @@
+node_modules/
+.DS_Store
+*.log
+*.bak
+*.bak.*
+.github/publish-denylist.txt
+docs-private/
+# --- github harness: 공통 무시 패턴 ---
+dist/
+build/
+.next/
+__pycache__/
+*.pyc
+.venv/
+venv/
+target/
+# 환경/시크릿
+.env
+.env.*
+*.secret
+secrets.*
+*.key
+*.pem
+# 내부 문서 (공개 금지)
+.private/
+internal/
+# public 누출 차단 내부어 목록(로컬 유지 — 공개 repo에 올리지 않음)
+# OS/에디터
+Thumbs.db
+.idea/
+.vscode/

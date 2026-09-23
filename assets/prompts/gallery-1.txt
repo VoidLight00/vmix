@@ -1,0 +1,9 @@
+SUBJECT: a single JSON-like document sheet drawn as abstract horizontal bars (no characters), with three thin lines flowing out of it to three small objects: a terminal window, a router block, a settings gear; the source sheet has one orange bar
+CAMERA/LENS: isometric illustration, 35mm equivalent
+LIGHT: soft even light, faint shadows
+COMPOSITION: sheet at center, three objects arranged in an arc around it, square frame, balanced negative space
+MOOD: orderly, single source of truth
+ASPECT_RATIO: 1:1
+DETAIL: minimal line art with solid fills, no characters anywhere
+FILM/COLOR: monochrome ink black (#0f0f10) and white with exactly one warm daisy-orange accent (#F5A623), flat matte finish, no gradients beyond subtle paper grain
+NEGATIVE: no text, no letters, no numbers, no labels, no fake brand logos, no pixel-copied UI, no distorted korean/latin text, no watermark, no lorem ipsum, no extra fingers/limbs, no gibberish, no signature, no left-edge vertical accent bars

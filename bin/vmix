@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# vmix — one Claude Code launcher for GPT and Gemini behind claude-code-router.
+#   vmix                 start with the registry default model
+#   vmix gemini          start with a model or alias from the registry
+#   vmix models|doctor|sync|help
+# Everything model-specific comes from ~/.config/vmix/models.json.
+set -euo pipefail
+
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+REGISTRY_BIN="${VMIX_REGISTRY_BIN:-$SELF_DIR/vmix-registry.mjs}"
+CCR_URL="${VMIX_CCR_URL:-http://127.0.0.1:3456}"
+CLAUDE_BIN="${VMIX_CLAUDE_BIN:-claude}"
+
+die() { printf 'vmix: %s\n' "$1" >&2; exit "${2:-1}"; }
+registry() { node "$REGISTRY_BIN" "$@"; }
+
+usage() {
+  cat <<'EOF'
+usage: vmix [model-or-alias] [claude options...]
+       vmix models    list registry models, aliases and /model slots
+       vmix doctor    check registry, router, proxy catalog and CCR health
+       vmix sync      write registry models into the CCR provider lists
+       vmix smoke     send one tiny request per model and check who answered
+Inside a session, switch with /model (Opus/Sonnet/Haiku/custom slots come from the registry).
+EOF
+}
+
+command -v node >/dev/null 2>&1 || die "Node.js 20+ is required (https://nodejs.org)" 127
+[ -f "$REGISTRY_BIN" ] || die "registry tool not found: $REGISTRY_BIN (run ./install.sh)" 127
+
+case "${1:-}" in
+  models|-m|--models) shift; exec node "$REGISTRY_BIN" list ;;
+  doctor) shift; exec node "$REGISTRY_BIN" doctor ;;
+  sync) shift; exec node "$REGISTRY_BIN" sync ;;
+  smoke) shift; exec node "$REGISTRY_BIN" smoke "$@" ;;
+  help|-h|--help) usage; exit 0 ;;
+esac
+
+# First non-option word(s) select the model. Two words are tried first so that
+# "vmix gpt6 sol" works; anything unresolved stays for claude (e.g. a prompt).
+requested=""
+if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+  if [ $# -gt 1 ] && [ "${2#-}" = "$2" ] && registry resolve "$1 $2" >/dev/null 2>&1; then
+    requested="$1 $2"
+    shift 2
+  else
+    requested="$1"
+    shift
+  fi
+fi
+
+if ! resolved="$(registry resolve "$requested")"; then
+  die "unknown or disabled model '${requested}'. Run: vmix models" 2
+fi
+IFS=$'\t' read -r model_id _cap _provider route <<EOF
+$resolved
+EOF
+
+command -v "$CLAUDE_BIN" >/dev/null 2>&1 || die "Claude Code not found: npm install -g @anthropic-ai/claude-code" 127
+status="$(curl -s -m 3 -o /dev/null -w '%{http_code}' "$CCR_URL/" 2>/dev/null || true)"
+if [ -z "$status" ] || [ "$status" = "000" ]; then
+  die "claude-code-router is not answering at $CCR_URL. Start it with: ccr start" 69
+fi
+
+# Every picker slot defaults to the selected model; the registry overrides them.
+# Background calls use the Haiku slot, so it must never point at a Claude model
+# the router would (correctly) refuse.
+opus="$route"; sonnet="$route"; haiku="$route"; custom=""
+opus_name="$model_id"; sonnet_name="$model_id"; haiku_name="$model_id"; custom_name=""
+while IFS=$'\t' read -r slot slot_route slot_label; do
+  case "$slot" in
+    opus) opus="$slot_route"; opus_name="$slot_label" ;;
+    sonnet) sonnet="$slot_route"; sonnet_name="$slot_label" ;;
+    haiku) haiku="$slot_route"; haiku_name="$slot_label" ;;
+    custom) custom="$slot_route"; custom_name="$slot_label" ;;
+  esac
+done <<EOF
+$(registry slots)
+EOF
+
+# Never forward a real Anthropic key to the local router.
+unset ANTHROPIC_API_KEY
+export ANTHROPIC_BASE_URL="$CCR_URL"
+export ANTHROPIC_AUTH_TOKEN="${VMIX_CCR_TOKEN:-vmix-local}"
+export ANTHROPIC_MODEL="$route"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$opus" ANTHROPIC_DEFAULT_OPUS_MODEL_NAME="$opus_name"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$sonnet" ANTHROPIC_DEFAULT_SONNET_MODEL_NAME="$sonnet_name"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$haiku" ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME="$haiku_name"
+export ANTHROPIC_SMALL_FAST_MODEL="$haiku"
+if [ -n "$custom" ]; then
+  export ANTHROPIC_CUSTOM_MODEL_OPTION="$custom" ANTHROPIC_CUSTOM_MODEL_OPTION_NAME="$custom_name"
+fi
+# A proxy error must surface as an error, not as an answer from a fallback model.
+export CLAUDE_CODE_NO_MODEL_FALLBACK=1
+
+exec "$CLAUDE_BIN" --model "$route" "$@"

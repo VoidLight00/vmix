@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "defaultModel": "gpt-6-sol",
+  "models": [
+    {
+      "id": "gpt-6-sol",
+      "label": "GPT-6 Sol",
+      "aliases": ["sol", "sol6", "gpt6sol"],
+      "family": "gpt",
+      "provider": "vibeproxy",
+      "contextCap": "330k",
+      "enabled": true,
+      "picker": "opus"
+    },
+    {
+      "id": "gemini-3.8-flash-high",
+      "label": "Gemini 3.8 Flash",
+      "aliases": ["gemini", "gemini3.8", "3.8"],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true,
+      "picker": "sonnet"
+    },
+    {
+      "id": "gpt-6-luna",
+      "label": "GPT-6 Luna",
+      "aliases": ["luna", "luna6", "gpt6luna"],
+      "family": "gpt",
+      "provider": "vibeproxy",
+      "contextCap": "330k",
+      "enabled": true,
+      "picker": "haiku"
+    },
+    {
+      "id": "gpt-6-astra",
+      "label": "GPT-6 Astra",
+      "aliases": ["astra", "gpt6astra"],
+      "family": "gpt",
+      "provider": "vibeproxy",
+      "contextCap": "240k",
+      "enabled": true,
+      "picker": "custom"
+    },
+    {
+      "id": "gpt-6-sol-1m",
+      "label": "GPT-6 Sol (virtual 1M, needs solgate)",
+      "aliases": ["sol1m", "sol6-1m"],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": false
+    },
+    {
+      "id": "gpt-6-luna-1m",
+      "label": "GPT-6 Luna (virtual 1M, needs solgate)",
+      "aliases": ["luna1m", "luna6-1m"],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": false
+    }
+  ]
+}

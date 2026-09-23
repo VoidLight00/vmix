@@ -1,0 +1,9 @@
+SUBJECT: a path of light reaching a closed gate that stops it cleanly, while a second correct path passes through an open gate beside it; the stopped path ends in a small orange warning dot
+CAMERA/LENS: isometric illustration
+LIGHT: soft directional light, gentle shadows
+COMPOSITION: two parallel paths from bottom left to upper right, gates at center, square frame, generous margins
+MOOD: safe, deliberate, fail-closed
+ASPECT_RATIO: 1:1
+DETAIL: minimal geometric shapes, solid fills, crisp outlines
+FILM/COLOR: monochrome ink black (#0f0f10) and white with exactly one warm daisy-orange accent (#F5A623), flat matte finish, no gradients beyond subtle paper grain
+NEGATIVE: no text, no letters, no numbers, no labels, no fake brand logos, no pixel-copied UI, no distorted korean/latin text, no watermark, no lorem ipsum, no extra fingers/limbs, no gibberish, no signature, no left-edge vertical accent bars

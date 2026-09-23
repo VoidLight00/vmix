@@ -1,0 +1,11 @@
+# vmix — Failure Log
+
+> One row per failure. Each one added a gate or a test so it cannot come back quietly.
+
+| date | id | symptom | root cause | fix | gate added |
+|---|---|---|---|---|---|
+| 2026-09-23 | VM-01 | `/model` showed Opus in a Gemini session, replies came from GPT | Custom router returned `null` for unknown models; CCR used `Router.default` | Router never returns `null`; unknown models go to an invalid id on a real provider (upstream 400) | tests/router.test.mjs, `vmix smoke` |
+| 2026-09-23 | VM-02 | Assumed "throw" and "unknown provider" were refusals | Measured on a throwaway CCR 2.0.0: `null` and throw both fall back to `Router.default`; unknown provider gives 404 | Documented measured behavior; kept the upstream-400 refusal | R6 in REQUIREMENTS.md |
+| 2026-09-23 | VM-03 | Background calls in Gemini sessions would fail after the router became strict | Haiku / small-fast slot left on a Claude model | Launcher pins every slot to a registry model | tests/launcher.test.mjs |
+| 2026-09-23 | VM-04 | All requests timed out after a reboot | VPN (Tailscale) stopped, proxy host unreachable | `vmix doctor` reports unreachable proxy with the VPN hint | tests/error-paths.test.mjs |
+| 2026-09-23 | VM-05 | Tutorial would install claude-code-router 3.x | 3.x is a rewrite; the custom-router hook was only verified on 2.0.0 | Pinned `@2.0.0`; install.sh refuses other majors unless `VMIX_ALLOW_ANY_CCR=1` | tests/install.test.mjs, docs_gate.sh |

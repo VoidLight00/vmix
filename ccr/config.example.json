@@ -1,0 +1,17 @@
+{
+  "LOG": false,
+  "API_TIMEOUT_MS": 600000,
+  "CUSTOM_ROUTER_PATH": "CUSTOM_ROUTER_PATH_PLACEHOLDER",
+  "Providers": [
+    {
+      "name": "vibeproxy",
+      "api_base_url": "http://PROXY_HOST:8317/v1/messages",
+      "api_key": "not-used",
+      "models": [],
+      "transformer": { "use": ["Anthropic"] }
+    }
+  ],
+  "Router": {
+    "default": "vibeproxy,gpt-6-sol"
+  }
+}

@@ -1,0 +1,11 @@
+# <min>	<glob> — how many of each artifact must exist.
+2	bin/*
+1	install.sh
+1	ccr/custom-router.js
+1	config/models.example.json
+5	tests/*.test.mjs
+9	gates/*_gate.sh
+1	README.md
+1	README.ko.md
+1	LICENSE
+6	assets/*.png

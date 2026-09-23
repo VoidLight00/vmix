@@ -1,0 +1,9 @@
+SUBJECT: a terminal window with abstract bar-shaped lines instead of text, and a floating selector panel with four slots, one slot highlighted in orange, showing a model being switched mid-session
+CAMERA/LENS: slight three-quarter view, 50mm equivalent
+LIGHT: soft screen glow, dark surroundings
+COMPOSITION: terminal lower left, selector panel upper right overlapping slightly, square frame
+MOOD: focused, fluid switching
+ASPECT_RATIO: 1:1
+DETAIL: flat UI shapes only, no readable text, crisp edges
+FILM/COLOR: monochrome ink black (#0f0f10) and white with exactly one warm daisy-orange accent (#F5A623), flat matte finish, no gradients beyond subtle paper grain
+NEGATIVE: no text, no letters, no numbers, no labels, no fake brand logos, no pixel-copied UI, no distorted korean/latin text, no watermark, no lorem ipsum, no extra fingers/limbs, no gibberish, no signature, no left-edge vertical accent bars

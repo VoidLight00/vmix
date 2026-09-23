@@ -1,0 +1,9 @@
+SUBJECT: a single stylized switch toggle between two model orbs, one round and one faceted, connected by one orange line, on a dark ink background
+CAMERA/LENS: flat graphic poster, straight-on
+LIGHT: soft glow only on the orange line
+COMPOSITION: everything inside the central horizontal band for a 1.91:1 social card center crop, large negative space top and bottom
+MOOD: bold, minimal, confident
+ASPECT_RATIO: 1.91:1 (centered for crop from square)
+DETAIL: vector-sharp edges, high contrast, readable at thumbnail size
+FILM/COLOR: monochrome ink black (#0f0f10) and white with exactly one warm daisy-orange accent (#F5A623), flat matte finish, no gradients beyond subtle paper grain
+NEGATIVE: no text, no letters, no numbers, no labels, no fake brand logos, no pixel-copied UI, no distorted korean/latin text, no watermark, no lorem ipsum, no extra fingers/limbs, no gibberish, no signature, no left-edge vertical accent bars
