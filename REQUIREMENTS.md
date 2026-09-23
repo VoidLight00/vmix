@@ -21,3 +21,4 @@
 | R15 | Long GPT requests remain on the selected GPT route; the router never diverts them to Gemini, and unregistered or Claude models fail closed instead of using `Router.default` | test_gate.sh |
 | R16 | The installer deploys the tested `bin/vmix` as the actual `~/.local/bin/vmix` executable together with its registry and default-model guard, preventing source/runtime drift | test_gate.sh |
 | R17 | The shipped example registry works with VibeProxy alone: no enabled row needs solgate or another optional provider, and every worker slot points at a GPT model | test_gate.sh |
+| R18 | Compatibility commands are data, not code: registry `profiles` set the default model, family restriction, `-1m` variant and `/model` slots; `claudeArgs` and per-model `autocompact` add Claude Code options; an executable prelaunch hook runs before the health check and only warns on failure | test_gate.sh |

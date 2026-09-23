@@ -179,6 +179,29 @@ vmix doctor && vmix smoke <새-id>
 | `enabled` | `false`면 행은 남기되 라우터가 거절해요 |
 | `picker` | 선택 사항. `/model` 슬롯 `opus`, `sonnet`, `haiku`, `custom` 중 하나(슬롯마다 한 번만) |
 | `label` | `/model`에 보이는 이름 |
+| `autocompact` | 선택 사항. 이 모델로 세션을 시작할 때 넘길 `--autocompact` 값(예: `220k`) |
+
+### 프로필: 기존 명령은 살리고 코드는 없애기
+
+`vgpt`, `vgemini` 같은 실행 명령을 이미 쓰고 계신다면, 모델 표를 셸 스크립트에 다시 적지 마세요. 레지스트리에 프로필로 적고 명령은 한 줄로 만들면 돼요.
+
+```json
+"claudeArgs": [],
+"profiles": {
+  "gpt":    { "default": "gpt-6-sol", "family": "gpt" },
+  "gpt1m":  { "default": "gpt-6-sol-1m", "family": "gpt", "variant": "1m" },
+  "gemini": { "default": "gemini-3.8-flash-high", "family": "gemini",
+              "slots": { "opus": "@main", "sonnet": "@main", "haiku": "@main" } }
+}
+```
+
+```bash
+vgpt()    { vmix --profile gpt "$@"; }      # vgpt astra, vgpt gpt6 luna …
+vgpt1m()  { vmix --profile gpt1m "$@"; }    # 그 모델의 -1m 변형을 골라요(solgate 행을 먼저 켜세요)
+vgemini() { vmix --profile gemini "$@"; }
+```
+
+`family`는 다른 계열 모델을 거절하고, `variant`는 `gpt-6-sol`을 `gpt-6-sol-1m`으로 바꿔요(그 행이 없으면 거절해요). `slots`는 `/model` 슬롯을 바꾸고(`@main` = 고른 모델), `claudeArgs`는 Claude Code 옵션을 더해요. 맨 위에 적으면 모든 실행에, 프로필 안에 적으면 그 프로필에만 적용돼요. 라우터 재시작이나 로그인 갱신처럼 기기마다 다른 준비 작업은 실행 가능한 `~/.config/vmix/prelaunch` 파일에 넣으세요. vmix가 상태 점검 전에 실행하고, 실패해도 경고만 하고 넘어가요.
 
 라우터는 요청마다 레지스트리를 다시 읽기 때문에, 모델을 켜고 끄는 건 바로 반영돼요. `vmix sync`와 `ccr restart`는 CCR provider 목록까지 맞춰 주는 단계예요.
 

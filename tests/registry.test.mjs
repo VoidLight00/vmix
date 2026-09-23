@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  normalize, validate, resolve, routeString, pickerSlots, availableModels, syncConfig, sameModel,
+  normalize, validate, resolve, routeString, pickerSlots, availableModels, syncConfig, sameModel, plan,
 } from "../bin/vmix-registry.mjs";
 import { exampleRegistry, multiRegistry } from "./helpers.mjs";
 
@@ -105,4 +105,63 @@ test("the public example works with VibeProxy alone and keeps every worker slot 
   for (const slot of pickerSlots(registry)) assert.match(slot.route, /^vibeproxy,gpt-/, `${slot.slot} -> ${slot.route}`);
   assert.equal(resolve(registry, "gemini").id, "gemini-3.8-flash-high");
   assert.equal(resolve(registry, "sol1m"), null);
+});
+
+test("plan without a profile uses the registry default and picker slots", () => {
+  const result = plan(multiRegistry(), []);
+  assert.equal(result.model.id, "gpt-6-sol");
+  assert.equal(result.consumed, 0);
+  assert.equal(result.slots.find((slot) => slot.slot === "sonnet").route, "solgate,gpt-5.6-terra[330k]");
+});
+
+test("plan consumes one or two model words and leaves the rest for Claude Code", () => {
+  assert.equal(plan(multiRegistry(), ["gpt6", "luna", "fix", "it"]).consumed, 2);
+  const one = plan(multiRegistry(), ["sol6", "explain"]);
+  assert.equal(one.model.id, "gpt-6-sol");
+  assert.equal(one.consumed, 1);
+});
+
+test("the gpt profile keeps vgpt's default, GPT-only rule, slots and Astra autocompact", () => {
+  const registry = multiRegistry();
+  const byDefault = plan(registry, [], "gpt");
+  assert.equal(byDefault.model.id, "gpt-5.6-sol");
+  assert.deepEqual(Object.fromEntries(byDefault.slots.map((slot) => [slot.slot, slot.route])), {
+    opus: "solgate,gpt-5.6-sol[330k]",
+    sonnet: "solgate,gpt-5.6-terra[330k]",
+    haiku: "solgate,gpt-5.6-luna[330k]",
+    custom: "solgate,gpt-6-astra[240k]",
+  });
+  assert.deepEqual(byDefault.args, ["--permission-mode", "acceptEdits"]);
+  assert.deepEqual(plan(registry, ["astra"], "gpt").args, ["--permission-mode", "acceptEdits", "--autocompact", "220k"]);
+  assert.match(plan(registry, ["gemini"], "gpt").error, /only runs gpt models/);
+});
+
+test("the gpt1m profile maps every pick to its virtual 1M variant or refuses", () => {
+  const registry = multiRegistry();
+  assert.equal(plan(registry, [], "gpt1m").model.id, "gpt-5.6-sol-1m");
+  assert.equal(plan(registry, ["astra"], "gpt1m").model.id, "gpt-6-astra-1m");
+  const twoWords = plan(registry, ["gpt6", "sol", "-p", "hi"], "gpt1m");
+  assert.equal(twoWords.model.id, "gpt-6-sol-1m");
+  assert.equal(twoWords.consumed, 2);
+  assert.match(plan(registry, ["gpt5.5"], "gpt1m").error, /no enabled 1m variant/);
+});
+
+test("the gemini profile points every worker slot at the selected Gemini model", () => {
+  const result = plan(multiRegistry(), ["3.7"], "gemini");
+  assert.equal(result.model.id, "gemini-3.7-flash-high");
+  for (const slot of result.slots) assert.equal(slot.route, "vibeproxy,gemini-3.7-flash-high[700k]");
+  assert.match(plan(multiRegistry(), ["sol6"], "gemini").error, /only runs gemini models/);
+  assert.match(plan(multiRegistry(), [], "nope").error, /unknown profile/);
+});
+
+test("validate rejects broken profiles and autocompact values", () => {
+  const registry = multiRegistry();
+  registry.profiles.bad = { default: "claude-opus-5-5", slots: { opus: "not-a-model", turbo: "@main" }, claudeArgs: "--x" };
+  registry.models[0].autocompact = "lots";
+  const problems = validate(registry).join("\n");
+  assert.match(problems, /profile 'bad': default 'claude-opus-5-5'/);
+  assert.match(problems, /slot opus -> 'not-a-model'/);
+  assert.match(problems, /unknown slot 'turbo'/);
+  assert.match(problems, /claudeArgs must be an array/);
+  assert.match(problems, /autocompact must look like/);
 });

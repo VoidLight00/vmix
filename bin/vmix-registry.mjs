@@ -64,10 +64,29 @@ export function validate(registry) {
       if (model.enabled) slotOwners.set(model.picker, model.id);
     }
   }
+  if (registry.claudeArgs !== undefined && !isStringArray(registry.claudeArgs)) problems.push("claudeArgs must be an array of strings");
+  const enabledIds = new Set((registry.models || []).filter((model) => model.enabled).map((model) => model.id));
+  for (const [name, profile] of Object.entries(registry.profiles || {})) {
+    const where = `profile '${name}'`;
+    if (!/^[a-z0-9_-]+$/.test(name)) problems.push(`${where}: name must match [a-z0-9_-]+`);
+    if (profile.default !== undefined && !enabledIds.has(profile.default)) problems.push(`${where}: default '${profile.default}' is not an enabled model id`);
+    if (profile.claudeArgs !== undefined && !isStringArray(profile.claudeArgs)) problems.push(`${where}: claudeArgs must be an array of strings`);
+    for (const [slot, target] of Object.entries(profile.slots || {})) {
+      if (!SLOTS.includes(slot)) problems.push(`${where}: unknown slot '${slot}'`);
+      if (target !== "@main" && !enabledIds.has(target)) problems.push(`${where}: slot ${slot} -> '${target}' is not an enabled model id`);
+    }
+  }
+  for (const model of registry.models || []) {
+    if (model.autocompact !== undefined && !/^\d+(k|m)$/i.test(model.autocompact)) problems.push(`${model.id}: autocompact must look like 220k`);
+  }
   const fallback = (registry.models || []).find((model) => model.id === registry.defaultModel);
   if (!fallback) problems.push(`defaultModel '${registry.defaultModel}' is not in models`);
   else if (!fallback.enabled) problems.push(`defaultModel '${registry.defaultModel}' is disabled`);
   return problems;
+}
+
+function isStringArray(value) {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
 function mustValidate(registry) {
@@ -93,6 +112,55 @@ export function pickerSlots(registry) {
   return enabledModels(registry)
     .filter((model) => model.picker)
     .map((model) => ({ slot: model.picker, route: routeString(model), label: model.label || model.id }));
+}
+
+// Applies a profile's variant ("1m": gpt-6-sol -> gpt-6-sol-1m) to a resolved model.
+function withVariant(registry, model, variant) {
+  if (!model || !variant || model.id.endsWith(`-${variant}`)) return model;
+  return enabledModels(registry).find((item) => item.id === `${model.id}-${variant}`) || null;
+}
+
+// Decides one launch: which model, which /model slots, which extra Claude Code
+// arguments, and how many leading words were model words. Profiles (vgpt, vgemini…)
+// are data in the registry, so compatibility commands carry no model knowledge.
+export function plan(registry, words, profileName = "") {
+  const profile = profileName ? (registry.profiles || {})[profileName] : null;
+  if (profileName && !profile) return { error: `unknown profile '${profileName}'` };
+  const variant = profile && profile.variant;
+  const pick = (query) => withVariant(registry, resolve(registry, query), variant);
+  const isWord = (word) => typeof word === "string" && word !== "" && !word.startsWith("-");
+
+  let query = "";
+  let consumed = 0;
+  if (isWord(words[0])) {
+    if (isWord(words[1]) && pick(`${words[0]} ${words[1]}`)) [query, consumed] = [`${words[0]} ${words[1]}`, 2];
+    else [query, consumed] = [words[0], 1];
+  }
+  const wanted = query || (profile && profile.default) || registry.defaultModel;
+  const base = resolve(registry, wanted);
+  const model = withVariant(registry, base, variant);
+  if (!base) return { error: `unknown or disabled model '${wanted}'. Run: vmix models` };
+  if (!model) return { error: `'${base.id}' has no enabled ${variant} variant in the registry` };
+  if (profile && profile.family && model.family !== profile.family) {
+    return { error: `profile '${profileName}' only runs ${profile.family} models; '${model.id}' is ${model.family}` };
+  }
+
+  const byId = (id) => enabledModels(registry).find((item) => item.id === id);
+  let slots;
+  if (profile && profile.slots) {
+    slots = Object.entries(profile.slots).map(([slot, target]) => {
+      const chosen = target === "@main" ? model : byId(target);
+      return { slot, route: routeString(chosen), label: chosen.label || chosen.id };
+    });
+  } else {
+    slots = pickerSlots(registry);
+  }
+  const args = [
+    ...(registry.claudeArgs || []),
+    ...((profile && profile.claudeArgs) || []),
+    ...(model.autocompact ? ["--autocompact", model.autocompact] : []),
+  ];
+  return { model, route: routeString(model), consumed, slots, args };
 }
 
 export function availableModels(registry) {
@@ -304,6 +372,10 @@ function cmdList() {
     const aliases = (model.aliases || []).join(" ");
     console.log(`${routeString(model).padEnd(40)} ${aliases.padEnd(28)} ${flags}`);
   }
+  for (const [name, profile] of Object.entries(registry.profiles || {})) {
+    const parts = [`default ${profile.default || registry.defaultModel}`, profile.family ? `${profile.family} only` : "", profile.variant ? `${profile.variant} variant` : ""].filter(Boolean);
+    console.log(`profile ${name.padEnd(12)} vmix --profile ${name}   (${parts.join(", ")})`);
+  }
 }
 
 async function main(argv) {
@@ -323,6 +395,24 @@ async function main(argv) {
     for (const slot of pickerSlots(mustValidate(loadRegistry()))) console.log([slot.slot, slot.route, slot.label].join("\t"));
   } else if (command === "list") {
     cmdList();
+  } else if (command === "plan") {
+    const registry = mustValidate(loadRegistry());
+    let profileName = "";
+    let words = rest;
+    if (words[0] === "--profile") [profileName, words] = [words[1] || "", words.slice(2)];
+    if (words[0] === "--") words = words.slice(1);
+    const result = plan(registry, words, profileName);
+    if (result.error) {
+      console.error(`vmix: ${result.error}`);
+      process.exitCode = 2;
+      return;
+    }
+    const out = [
+      ["MODEL", result.model.id], ["FAMILY", result.model.family || ""], ["ROUTE", result.route], ["CONSUMED", String(result.consumed)],
+      ...result.slots.map((slot) => ["SLOT", slot.slot, slot.route, slot.label]),
+      ...result.args.map((arg) => ["ARG", arg]),
+    ];
+    console.log(out.map((row) => row.join("\t")).join("\n"));
   } else if (command === "allowlist") {
     const registry = mustValidate(loadRegistry());
     console.log(JSON.stringify({ availableModels: availableModels(registry) }));
@@ -333,7 +423,7 @@ async function main(argv) {
   } else if (command === "smoke") {
     await cmdSmoke(rest);
   } else {
-    console.log("usage: vmix-registry.mjs validate|resolve <model>|slots|list|allowlist|sync|doctor|smoke [model...]");
+    console.log("usage: vmix-registry.mjs validate|resolve <model>|plan [--profile P] -- <words...>|slots|list|allowlist|sync|doctor|smoke [model...]");
     if (command !== "help") process.exitCode = 64;
   }
 }

@@ -5,6 +5,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [Semantic V
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-23
+
+### Added
+- Registry `profiles` (`default`, `family`, `variant`, `slots` with `@main`) and `vmix --profile NAME`, so existing launchers such as `vgpt`, `vgpt1m` and `vgemini` become one-line delegations instead of carrying their own model tables.
+- Top-level and per-profile `claudeArgs`, per-model `autocompact`.
+- Optional `~/.config/vmix/prelaunch` hook for machine-specific preparation (restart the router, refresh a login); a failure only warns.
+- `vmix-registry.mjs plan`: one place that decides model, slots, extra arguments and how many words were model words.
+
 ## [0.2.0] - 2026-09-23
 
 ### Added
@@ -26,6 +34,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/), versioning: [Semantic V
 - Idempotent `install.sh` with backups, proxy-host validation and a claude-code-router 2.x guard.
 - English and Korean step-by-step tutorial, offline test suite and HARD gates.
 
-[Unreleased]: https://github.com/VoidLight00/vmix/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/VoidLight00/vmix/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/VoidLight00/vmix/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/VoidLight00/vmix/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/VoidLight00/vmix/commits/main

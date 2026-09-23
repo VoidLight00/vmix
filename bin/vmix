@@ -2,7 +2,8 @@
 # vmix — one Claude Code launcher for GPT and Gemini behind claude-code-router.
 #   vmix                 start with the registry default model
 #   vmix gemini          start with a model or alias from the registry
-#   vmix models|doctor|sync|help
+#   vmix --profile gpt   apply a registry profile (how vgpt/vgemini are built)
+#   vmix models|doctor|sync|smoke|help
 # Everything model-specific comes from ~/.config/vmix/models.json.
 set -euo pipefail
 
@@ -17,7 +18,7 @@ registry() { node "$REGISTRY_BIN" "$@"; }
 
 usage() {
   cat <<'EOF'
-usage: vmix [model-or-alias] [claude options...]
+usage: vmix [--profile NAME] [model-or-alias] [claude options...]
        vmix models    list registry models, aliases and /model slots
        vmix doctor    check registry, router, proxy catalog and CCR health
        vmix sync      write registry models into the CCR provider lists
@@ -38,47 +39,65 @@ case "${1:-}" in
   help|-h|--help) usage; exit 0 ;;
 esac
 
-# First non-option word(s) select the model. Two words are tried first so that
-# "vmix gpt6 sol" works; anything unresolved stays for claude (e.g. a prompt).
-requested=""
-if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
-  if [ $# -gt 1 ] && [ "${2#-}" = "$2" ] && registry resolve "$1 $2" >/dev/null 2>&1; then
-    requested="$1 $2"
-    shift 2
-  else
-    requested="$1"
-    shift
-  fi
+profile=""
+if [ "${1:-}" = "--profile" ]; then
+  [ $# -ge 2 ] || die "--profile needs a name (see \"profiles\" in the registry)" 64
+  profile="$2"
+  shift 2
 fi
 
-if ! resolved="$(registry resolve "$requested")"; then
-  die "unknown or disabled model '${requested}'. Run: vmix models" 2
+# The registry decides the model, the /model slots and any extra Claude Code
+# arguments (see `plan` in vmix-registry.mjs); this script only applies them.
+if [ -n "$profile" ]; then
+  launch_plan="$(registry plan --profile "$profile" -- "$@")" || exit 2
+else
+  launch_plan="$(registry plan -- "$@")" || exit 2
 fi
-IFS=$'\t' read -r model_id _cap _provider route <<EOF
-$resolved
+
+model_id=""; family=""; route=""; consumed=0
+opus=""; sonnet=""; haiku=""; custom=""
+opus_name=""; sonnet_name=""; haiku_name=""; custom_name=""
+extra_args=()
+while IFS=$'\t' read -r key a b c; do
+  case "$key" in
+    MODEL) model_id="$a" ;;
+    FAMILY) family="$a" ;;
+    ROUTE) route="$a" ;;
+    CONSUMED) consumed="$a" ;;
+    SLOT)
+      case "$a" in
+        opus) opus="$b"; opus_name="$c" ;;
+        sonnet) sonnet="$b"; sonnet_name="$c" ;;
+        haiku) haiku="$b"; haiku_name="$c" ;;
+        custom) custom="$b"; custom_name="$c" ;;
+      esac ;;
+    ARG) extra_args+=("$a") ;;
+  esac
+done <<EOF
+$launch_plan
 EOF
+[ -n "$route" ] || die "could not plan the launch" 1
+shift "$consumed"
+
+# Slots the registry leaves open follow the selected model. Background calls use
+# the Haiku slot, so it must never point at a Claude model the router refuses.
+[ -n "$opus" ] || { opus="$route"; opus_name="$model_id"; }
+[ -n "$sonnet" ] || { sonnet="$route"; sonnet_name="$model_id"; }
+[ -n "$haiku" ] || { haiku="$route"; haiku_name="$model_id"; }
+
+# Optional per-machine preparation (restart the router, refresh a login, …).
+# A failing hook warns but does not block: the health check below still decides.
+hook="${VMIX_PRELAUNCH:-${XDG_CONFIG_HOME:-$HOME/.config}/vmix/prelaunch}"
+if [ -x "$hook" ]; then
+  VMIX_MODEL_ID="$model_id" VMIX_MODEL_FAMILY="$family" VMIX_PROFILE="$profile" "$hook" \
+    || printf 'vmix: warning: prelaunch hook %s failed; continuing\n' "$hook" >&2
+fi
 
 command -v "$CLAUDE_BIN" >/dev/null 2>&1 || die "Claude Code not found: npm install -g @anthropic-ai/claude-code" 127
 status="$(curl -s -m 3 -o /dev/null -w '%{http_code}' "$CCR_URL/" 2>/dev/null || true)"
 if [ -z "$status" ] || [ "$status" = "000" ]; then
   die "claude-code-router is not answering at $CCR_URL. Start it with: ccr start" 69
 fi
-
-# Every picker slot defaults to the selected model; the registry overrides them.
-# Background calls use the Haiku slot, so it must never point at a Claude model
-# the router would (correctly) refuse.
-opus="$route"; sonnet="$route"; haiku="$route"; custom=""
-opus_name="$model_id"; sonnet_name="$model_id"; haiku_name="$model_id"; custom_name=""
-while IFS=$'\t' read -r slot slot_route slot_label; do
-  case "$slot" in
-    opus) opus="$slot_route"; opus_name="$slot_label" ;;
-    sonnet) sonnet="$slot_route"; sonnet_name="$slot_label" ;;
-    haiku) haiku="$slot_route"; haiku_name="$slot_label" ;;
-    custom) custom="$slot_route"; custom_name="$slot_label" ;;
-  esac
-done <<EOF
-$(registry slots)
-EOF
 
 # Never forward a real Anthropic key to the local router.
 unset ANTHROPIC_API_KEY
@@ -98,7 +117,7 @@ allowlist="$(registry allowlist)" || die "could not build the /model allowlist" 
 
 before_model="$(node "$DEFAULT_GUARD_BIN" get)" || die "could not read the normal Claude Code default" 1
 set +e
-"$CLAUDE_BIN" --model "$route" --settings "$allowlist" "$@"
+"$CLAUDE_BIN" --model "$route" --settings "$allowlist" ${extra_args[@]+"${extra_args[@]}"} "$@"
 claude_rc=$?
 set -e
 if ! node "$DEFAULT_GUARD_BIN" restore "$before_model"; then

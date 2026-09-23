@@ -119,3 +119,42 @@ test("a native Claude model selected during the session is preserved", async () 
   assert.equal(result.settings.model, "claude-sonnet-5");
   assert.doesNotMatch(result.stderr, /restored default model/);
 });
+
+test("--profile applies the registry profile: model, slots, extra args, then user args", async () => {
+  const ccr = await mockServer(() => ({ status: 200, json: {} }));
+  const { code, call, stderr } = await launch(["--profile", "gpt", "astra", "-p", "hi"], ccr.url);
+  await ccr.close();
+  assert.equal(code, 0, stderr);
+  assert.deepEqual(call.argv.slice(0, 2), ["--model", "solgate,gpt-6-astra[240k]"]);
+  assert.deepEqual(call.argv.slice(4), ["--permission-mode", "acceptEdits", "--autocompact", "220k", "-p", "hi"]);
+  assert.equal(call.env.ANTHROPIC_DEFAULT_OPUS_MODEL, "solgate,gpt-5.6-sol[330k]");
+  assert.equal(call.env.ANTHROPIC_DEFAULT_HAIKU_MODEL, "solgate,gpt-5.6-luna[330k]");
+  assert.equal(call.env.ANTHROPIC_SMALL_FAST_MODEL, "solgate,gpt-5.6-luna[330k]");
+});
+
+test("a profile refuses a model from another family before Claude Code starts", async () => {
+  const ccr = await mockServer(() => ({ status: 200, json: {} }));
+  const result = await launch(["--profile", "gpt", "gemini"], ccr.url);
+  await ccr.close();
+  assert.equal(result.code, 2);
+  assert.equal(result.call, null);
+  assert.match(result.stderr, /only runs gpt models/);
+});
+
+test("the prelaunch hook runs with the chosen model, and a failing hook only warns", async () => {
+  const ccr = await mockServer(() => ({ status: 200, json: {} }));
+  const dir = tempDir();
+  const seen = path.join(dir, "hook-env.txt");
+  const okHook = path.join(dir, "ok-hook");
+  writeExecutable(okHook, `#!/bin/sh\nprintf '%s %s %s' "$VMIX_MODEL_ID" "$VMIX_MODEL_FAMILY" "$VMIX_PROFILE" > ${JSON.stringify(seen)}\n`);
+  const ok = await launch(["--profile", "gemini", "3.7"], ccr.url, { VMIX_PRELAUNCH: okHook });
+  assert.equal(ok.code, 0, ok.stderr);
+  assert.equal(fs.readFileSync(seen, "utf8"), "gemini-3.7-flash-high gemini gemini");
+  const badHook = path.join(dir, "bad-hook");
+  writeExecutable(badHook, "#!/bin/sh\nexit 3\n");
+  const bad = await launch([], ccr.url, { VMIX_PRELAUNCH: badHook });
+  await ccr.close();
+  assert.equal(bad.code, 0, bad.stderr);
+  assert.ok(bad.call, "Claude Code still starts");
+  assert.match(bad.stderr, /prelaunch hook .* failed; continuing/);
+});

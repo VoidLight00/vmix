@@ -179,6 +179,29 @@ vmix doctor && vmix smoke <new-id>
 | `enabled` | `false` keeps the row but makes the router refuse it |
 | `picker` | Optional `/model` slot: `opus`, `sonnet`, `haiku` or `custom` (each at most once) |
 | `label` | Name shown in `/model` |
+| `autocompact` | Optional `--autocompact` value passed when this model starts a session (e.g. `220k`) |
+
+### Profiles: keeping old commands without keeping their code
+
+If you already have launchers such as `vgpt` or `vgemini`, do not copy their model tables into shell scripts. Describe them as profiles in the registry and make the command a one-liner:
+
+```json
+"claudeArgs": [],
+"profiles": {
+  "gpt":    { "default": "gpt-6-sol", "family": "gpt" },
+  "gpt1m":  { "default": "gpt-6-sol-1m", "family": "gpt", "variant": "1m" },
+  "gemini": { "default": "gemini-3.8-flash-high", "family": "gemini",
+              "slots": { "opus": "@main", "sonnet": "@main", "haiku": "@main" } }
+}
+```
+
+```bash
+vgpt()    { vmix --profile gpt "$@"; }      # vgpt astra, vgpt gpt6 luna …
+vgpt1m()  { vmix --profile gpt1m "$@"; }    # picks the -1m variant (enable the solgate rows first)
+vgemini() { vmix --profile gemini "$@"; }
+```
+
+`family` refuses models from another family, `variant` maps `gpt-6-sol` to `gpt-6-sol-1m` (or refuses if that row does not exist), `slots` overrides the `/model` slots (`@main` = the selected model) and `claudeArgs` adds Claude Code options, at the top level for every launch or inside one profile. Machine-specific preparation, such as restarting the router or refreshing a login, goes in an executable `~/.config/vmix/prelaunch`; vmix runs it before the health check and only warns if it fails.
 
 The router re-reads the registry on every request, so enabling or disabling a model takes effect immediately; `vmix sync` and `ccr restart` keep the CCR provider lists in step.
 

@@ -2,27 +2,329 @@
   "version": 1,
   "defaultModel": "gpt-6-sol",
   "models": [
-    {"id":"gpt-6-sol","label":"GPT-6 Sol","aliases":["sol6","gpt6sol","gpt6-sol"],"family":"gpt","provider":"solgate","contextCap":"330k","enabled":true,"picker":"opus"},
-    {"id":"gpt-6-luna","label":"GPT-6 Luna","aliases":["luna6","gpt6luna","gpt6-luna"],"family":"gpt","provider":"solgate","contextCap":"330k","enabled":true,"picker":"haiku"},
-    {"id":"gpt-6-astra","label":"GPT-6 Astra","aliases":["astra","astra6","gpt6"],"family":"gpt","provider":"solgate","contextCap":"240k","enabled":true,"picker":"custom"},
-    {"id":"gpt-6-sol-1m","label":"GPT-6 Sol 1M","aliases":["sol61m","sol6-1m","gpt6sol1m"],"family":"gpt","provider":"solgate","contextCap":"1m","enabled":true,"virtual":true},
-    {"id":"gpt-6-luna-1m","label":"GPT-6 Luna 1M","aliases":["luna61m","luna6-1m","gpt6luna1m"],"family":"gpt","provider":"solgate","contextCap":"1m","enabled":true,"virtual":true},
-    {"id":"gpt-6-astra-1m","label":"GPT-6 Astra 1M","aliases":["astra1m","astra-1m"],"family":"gpt","provider":"solgate","contextCap":"1m","enabled":true,"virtual":true},
-    {"id":"gpt-5.6-sol","label":"GPT-5.6 Sol","aliases":["sol","gpt5.6","gpt56"],"family":"gpt","provider":"solgate","contextCap":"330k","enabled":true},
-    {"id":"gpt-5.6-terra","label":"GPT-5.6 Terra","aliases":["terra"],"family":"gpt","provider":"solgate","contextCap":"330k","enabled":true,"picker":"sonnet","sticky":true},
-    {"id":"gpt-5.6-luna","label":"GPT-5.6 Luna","aliases":["luna"],"family":"gpt","provider":"solgate","contextCap":"330k","enabled":true},
-    {"id":"gpt-5.6-sol-1m","label":"GPT-5.6 Sol 1M","aliases":["sol1m","sol-1m","1m"],"family":"gpt","provider":"solgate","contextCap":"1m","enabled":true,"virtual":true},
-    {"id":"gpt-5.6-terra-1m","label":"GPT-5.6 Terra 1M","aliases":["terra1m","terra-1m"],"family":"gpt","provider":"solgate","contextCap":"1m","enabled":true,"virtual":true,"sticky":true},
-    {"id":"gpt-5.6-luna-1m","label":"GPT-5.6 Luna 1M","aliases":["luna1m","luna-1m"],"family":"gpt","provider":"solgate","contextCap":"1m","enabled":true,"virtual":true},
-    {"id":"gpt-5.5","label":"GPT-5.5","aliases":["gpt5.5","gpt55"],"family":"gpt","provider":"vibeproxy","contextCap":"150k","enabled":true},
-    {"id":"gemini-3.8-flash-high","label":"Gemini 3.8 Flash High","aliases":["gemini","gemini3.8","gemini-3.8","gemini38","3.8"],"family":"gemini","provider":"vibeproxy","contextCap":"700k","enabled":true},
-    {"id":"gemini-3.7-flash-high","label":"Gemini 3.7 Flash High","aliases":["gemini3.7","gemini-3.7","3.7"],"family":"gemini","provider":"vibeproxy","contextCap":"700k","enabled":true},
-    {"id":"gemini-3.6-flash-high","label":"Gemini 3.6 Flash High","aliases":["gemini3.6","gemini-3.6","3.6"],"family":"gemini","provider":"vibeproxy","contextCap":"700k","enabled":true},
-    {"id":"gemini-3.5-flash-lite","label":"Gemini 3.5 Flash Lite","aliases":["gemini3.5","gemini-3.5","3.5"],"family":"gemini","provider":"vibeproxy","contextCap":"700k","enabled":true},
-    {"id":"gemini-3.1-flash-lite","label":"Gemini 3.1 Flash Lite","aliases":["gemini3.1","gemini-3.1","3.1"],"family":"gemini","provider":"vibeproxy","contextCap":"700k","enabled":true},
-    {"id":"gemini-3.1-pro-low","label":"Gemini 3.1 Pro Low","aliases":["gemini3.1pro","gemini-3.1-pro"],"family":"gemini","provider":"vibeproxy","contextCap":"700k","enabled":true},
-    {"id":"gemini-3-flash","label":"Gemini 3 Flash","aliases":["gemini3","gemini-3"],"family":"gemini","provider":"vibeproxy","contextCap":"700k","enabled":true},
-    {"id":"glm-4.7","label":"GLM 4.7","aliases":["glm","glm47"],"family":"glm","provider":"vibeproxy","contextCap":"100k","enabled":true},
-    {"id":"glm-4-plus","label":"GLM 4 Plus","aliases":["glmplus"],"family":"glm","provider":"vibeproxy","contextCap":"100k","enabled":true}
-  ]
+    {
+      "id": "gpt-6-sol",
+      "label": "GPT-6 Sol",
+      "aliases": [
+        "sol6",
+        "gpt6sol",
+        "gpt6-sol"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "330k",
+      "enabled": true,
+      "picker": "opus"
+    },
+    {
+      "id": "gpt-6-luna",
+      "label": "GPT-6 Luna",
+      "aliases": [
+        "luna6",
+        "gpt6luna",
+        "gpt6-luna"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "330k",
+      "enabled": true,
+      "picker": "haiku"
+    },
+    {
+      "id": "gpt-6-astra",
+      "label": "GPT-6 Astra",
+      "aliases": [
+        "astra",
+        "astra6",
+        "gpt6"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "240k",
+      "enabled": true,
+      "picker": "custom",
+      "autocompact": "220k"
+    },
+    {
+      "id": "gpt-6-sol-1m",
+      "label": "GPT-6 Sol 1M",
+      "aliases": [
+        "sol61m",
+        "sol6-1m",
+        "gpt6sol1m"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": true,
+      "virtual": true
+    },
+    {
+      "id": "gpt-6-luna-1m",
+      "label": "GPT-6 Luna 1M",
+      "aliases": [
+        "luna61m",
+        "luna6-1m",
+        "gpt6luna1m"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": true,
+      "virtual": true
+    },
+    {
+      "id": "gpt-6-astra-1m",
+      "label": "GPT-6 Astra 1M",
+      "aliases": [
+        "astra1m",
+        "astra-1m"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": true,
+      "virtual": true
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "label": "GPT-5.6 Sol",
+      "aliases": [
+        "sol",
+        "gpt5.6",
+        "gpt56"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "330k",
+      "enabled": true
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "label": "GPT-5.6 Terra",
+      "aliases": [
+        "terra"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "330k",
+      "enabled": true,
+      "picker": "sonnet",
+      "sticky": true
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "label": "GPT-5.6 Luna",
+      "aliases": [
+        "luna"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "330k",
+      "enabled": true
+    },
+    {
+      "id": "gpt-5.6-sol-1m",
+      "label": "GPT-5.6 Sol 1M",
+      "aliases": [
+        "sol1m",
+        "sol-1m",
+        "1m"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": true,
+      "virtual": true
+    },
+    {
+      "id": "gpt-5.6-terra-1m",
+      "label": "GPT-5.6 Terra 1M",
+      "aliases": [
+        "terra1m",
+        "terra-1m"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": true,
+      "virtual": true,
+      "sticky": true
+    },
+    {
+      "id": "gpt-5.6-luna-1m",
+      "label": "GPT-5.6 Luna 1M",
+      "aliases": [
+        "luna1m",
+        "luna-1m"
+      ],
+      "family": "gpt",
+      "provider": "solgate",
+      "contextCap": "1m",
+      "enabled": true,
+      "virtual": true
+    },
+    {
+      "id": "gpt-5.5",
+      "label": "GPT-5.5",
+      "aliases": [
+        "gpt5.5",
+        "gpt55"
+      ],
+      "family": "gpt",
+      "provider": "vibeproxy",
+      "contextCap": "150k",
+      "enabled": true
+    },
+    {
+      "id": "gemini-3.8-flash-high",
+      "label": "Gemini 3.8 Flash High",
+      "aliases": [
+        "gemini",
+        "gemini3.8",
+        "gemini-3.8",
+        "gemini38",
+        "3.8"
+      ],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "gemini-3.7-flash-high",
+      "label": "Gemini 3.7 Flash High",
+      "aliases": [
+        "gemini3.7",
+        "gemini-3.7",
+        "3.7"
+      ],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "gemini-3.6-flash-high",
+      "label": "Gemini 3.6 Flash High",
+      "aliases": [
+        "gemini3.6",
+        "gemini-3.6",
+        "3.6"
+      ],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "gemini-3.5-flash-lite",
+      "label": "Gemini 3.5 Flash Lite",
+      "aliases": [
+        "gemini3.5",
+        "gemini-3.5",
+        "3.5"
+      ],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "label": "Gemini 3.1 Flash Lite",
+      "aliases": [
+        "gemini3.1",
+        "gemini-3.1",
+        "3.1"
+      ],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "gemini-3.1-pro-low",
+      "label": "Gemini 3.1 Pro Low",
+      "aliases": [
+        "gemini3.1pro",
+        "gemini-3.1-pro"
+      ],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "gemini-3-flash",
+      "label": "Gemini 3 Flash",
+      "aliases": [
+        "gemini3",
+        "gemini-3"
+      ],
+      "family": "gemini",
+      "provider": "vibeproxy",
+      "contextCap": "700k",
+      "enabled": true
+    },
+    {
+      "id": "glm-4.7",
+      "label": "GLM 4.7",
+      "aliases": [
+        "glm",
+        "glm47"
+      ],
+      "family": "glm",
+      "provider": "vibeproxy",
+      "contextCap": "100k",
+      "enabled": true
+    },
+    {
+      "id": "glm-4-plus",
+      "label": "GLM 4 Plus",
+      "aliases": [
+        "glmplus"
+      ],
+      "family": "glm",
+      "provider": "vibeproxy",
+      "contextCap": "100k",
+      "enabled": true
+    }
+  ],
+  "profiles": {
+    "gpt": {
+      "default": "gpt-5.6-sol",
+      "family": "gpt",
+      "slots": {
+        "opus": "gpt-5.6-sol",
+        "sonnet": "gpt-5.6-terra",
+        "haiku": "gpt-5.6-luna",
+        "custom": "gpt-6-astra"
+      },
+      "claudeArgs": [
+        "--permission-mode",
+        "acceptEdits"
+      ]
+    },
+    "gpt1m": {
+      "default": "gpt-5.6-sol-1m",
+      "family": "gpt",
+      "variant": "1m",
+      "slots": {
+        "opus": "gpt-5.6-sol-1m",
+        "sonnet": "gpt-5.6-terra-1m",
+        "haiku": "gpt-5.6-luna-1m",
+        "custom": "gpt-6-astra-1m"
+      }
+    },
+    "gemini": {
+      "default": "gemini-3.8-flash-high",
+      "family": "gemini",
+      "slots": {
+        "opus": "@main",
+        "sonnet": "@main",
+        "haiku": "@main"
+      }
+    }
+  }
 }
